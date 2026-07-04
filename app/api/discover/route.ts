@@ -157,11 +157,20 @@ async function runSearches(
   }
 
   const byId = new Map<string, Track>();
+  const seenTitleArtist = new Set<string>();
+  // Collapse re-releases / lofi remixes that share the same title+artist but
+  // have different track ids (e.g. "Man Kunto Maula" appearing twice).
+  const key = (t: Track) =>
+    `${t.name.toLowerCase().replace(/\s*[([].*$/, "").trim()}|${t.artist.toLowerCase()}`;
   for (const r of results) {
     if (r.status !== "fulfilled") continue;
     for (const t of r.value) {
       if (!t.isPlayable) continue; // drop unplayable
-      if (!byId.has(t.id)) byId.set(t.id, t);
+      if (byId.has(t.id)) continue;
+      const k = key(t);
+      if (seenTitleArtist.has(k)) continue; // drop title+artist duplicate
+      seenTitleArtist.add(k);
+      byId.set(t.id, t);
     }
   }
   return Array.from(byId.values());
