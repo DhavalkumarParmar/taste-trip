@@ -19,8 +19,13 @@ export interface Track {
   album: string;
   albumImageUrl: string | null;
   spotifyUrl: string;
-  popularity: number; // 0-100
-  previewUrl: string | null; // 30s preview, best-effort / often null
+  isPlayable: boolean; // Spotify is_playable; defaults true when field absent
+  // NOTE: new Spotify apps no longer receive `popularity` or `preview_url`
+  // from /v1/search (Nov-2024 restrictions). We keep these fields for shape
+  // stability, but `popularity` is effectively always 0 and `previewUrl`
+  // effectively always null — do NOT build ranking logic on them.
+  popularity: number; // 0-100 (unavailable for new apps -> 0)
+  previewUrl: string | null; // 30s preview (unavailable for new apps -> null)
 }
 
 /** Thrown when Spotify returns 429 so callers can surface a friendly message. */
@@ -42,6 +47,7 @@ interface SpotifyTokenResponse {
 interface SpotifyApiTrack {
   id?: string;
   name?: string;
+  is_playable?: boolean;
   popularity?: number;
   preview_url?: string | null;
   external_urls?: { spotify?: string };
@@ -116,6 +122,7 @@ function normalizeTrack(t: SpotifyApiTrack): Track | null {
     albumImageUrl,
     spotifyUrl:
       t.external_urls?.spotify ?? `https://open.spotify.com/track/${t.id}`,
+    isPlayable: t.is_playable !== false, // treat absent as playable
     popularity: typeof t.popularity === "number" ? t.popularity : 0,
     previewUrl: t.preview_url ?? null,
   };
