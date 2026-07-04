@@ -14,36 +14,16 @@ export interface Persona {
   emoji: string;
   /** One-line description of who this listener is. */
   description: string;
-  /** ~8-12 top artists that sharply define this taste. */
+  /** Top artists that sharply define this taste. */
   seedArtists: string[];
 }
 
 export const PERSONAS: Persona[] = [
   {
-    id: "midnight-indie",
-    name: "The Midnight Melancholic",
-    emoji: "🌧️",
-    description:
-      "Hushed, introspective indie-folk for headphones and rainy windows. Lives in slow builds, cracked vocals, and lyrics that ache.",
-    seedArtists: [
-      "Bon Iver",
-      "Phoebe Bridgers",
-      "Sufjan Stevens",
-      "The National",
-      "Fleet Foxes",
-      "Big Thief",
-      "Elliott Smith",
-      "Julien Baker",
-      "Iron & Wine",
-      "Nick Drake",
-    ],
-  },
-  {
     id: "bollywood-romantic",
     name: "The Bollywood Romantic",
     emoji: "🌹",
-    description:
-      "Lives for sweeping Hindi film love songs and modern Bollywood pop — soaring melodies, playback legends, and a good monsoon ballad.",
+    description: "Sweeping Hindi film love songs and modern Bollywood pop.",
     seedArtists: [
       "Arijit Singh",
       "Pritam",
@@ -58,22 +38,36 @@ export const PERSONAS: Persona[] = [
     ],
   },
   {
-    id: "latenight-hiphop",
-    name: "The Late-Night Hip-Hop Head",
-    emoji: "🎧",
+    id: "soulful-purist",
+    name: "The Soulful Purist",
+    emoji: "🕊️",
     description:
-      "Moody, lyric-forward hip-hop and alt-R&B — smoky late-night production, sharp bars, and singers who blur rap and soul.",
+      "Poetic ghazals, Sufi devotionals, Hindustani classical, and slow, lyrically rich acoustic melodies. Values vocal depth, instrumentation, and poetry over electronic beats.",
     seedArtists: [
-      "Kendrick Lamar",
-      "SZA",
-      "J. Cole",
-      "Frank Ocean",
-      "Tyler, The Creator",
-      "Mac Miller",
-      "Anderson .Paak",
-      "Brent Faiyaz",
-      "Daniel Caesar",
-      "Metro Boomin",
+      "Jagjit Singh",
+      "Nusrat Fateh Ali Khan",
+      "Rekha Bhardwaj",
+      "Wadali Brothers",
+      "Papon",
+    ],
+  },
+  {
+    id: "indie-dreamer",
+    name: "The Indie Dreamer",
+    emoji: "🌙",
+    description:
+      "Intimate acoustic storytelling, contemporary Indian indie, bedroom pop, and soft English singer-songwriters. Values minimal instrumentation (mostly guitars and ukuleles), emotional vulnerability, and a cozy, late-night road trip or cafe vibe.",
+    seedArtists: [
+      "Anuv Jain",
+      "Prateek Kuhad",
+      "When Chai Met Toast",
+      "The Local Train",
+      "Osho Jain",
+      "Vance Joy",
+      "Hozier",
+      "Passenger",
+      "Phoebe Bridgers",
+      "Bon Iver",
     ],
   },
 ];

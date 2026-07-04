@@ -21,7 +21,7 @@ import {
 import { generateJSON } from "@/lib/gemini";
 
 export const runtime = "nodejs";
-export const maxDuration = 30; // allow time for 2 Gemini calls + searches
+export const maxDuration = 60; // Gemini 503s need retry headroom
 
 // ---- request / response shapes ----
 interface DiscoverRequest {
@@ -91,7 +91,10 @@ async function planQueries(
     "You are an expert music-discovery curator for Spotify. Your goal is to " +
     "pull listeners OUT of their familiarity trap: surface real, lesser-known " +
     "tracks they likely haven't heard, not blockbusters and not the artists " +
-    "they already know.";
+    "they already know. Crucially, discoveries must stay within the listener's " +
+    "OWN genre(s), language, and emotional world — you surface unfamiliar " +
+    "artists and deeper cuts IN THAT SAME LANE, never a jump to a different " +
+    "genre, unless the request explicitly asks to cross over.";
 
   const userPrompt =
     `The listener already knows these artists: ${seedArtists.join(", ")}.\n` +
@@ -99,11 +102,17 @@ async function planQueries(
       prompt ||
       "(no specific request — surprise me with fresh discoveries that expand my taste)"
     }.\n\n` +
+    `First, identify the listener's core genre(s) and language from the seed ` +
+    `artists (e.g. Arijit Singh/Pritam/A.R. Rahman => Hindi FILM / Bollywood ` +
+    `playback; Nusrat/Wadali Brothers => qawwali & Sufi; Anuv Jain/Prateek ` +
+    `Kuhad => Indian indie / acoustic singer-songwriter). Your picks MUST stay ` +
+    `in that same lane and language — surface unfamiliar artists and deeper ` +
+    `cuts within it, not a different genre.\n\n` +
     `Produce two things.\n\n` +
     `"candidates" (PRIMARY — 10-15 items): specific, REAL {title, artist} songs ` +
-    `that fit the request and taste, by artists OTHER than the seed artists. ` +
-    `Favor genuine discoveries the listener likely hasn't heard over obvious ` +
-    `hits. Name real songs by real artists in the target style/language — these ` +
+    `IN THE LISTENER'S GENRE AND LANGUAGE that fit the request, by artists ` +
+    `OTHER than the seed artists. Favor genuine discoveries the listener likely ` +
+    `hasn't heard over obvious hits. Name real songs by real artists — these ` +
     `are verified against Spotify, so accuracy matters (only real songs survive).\n\n` +
     `"queries" (4-6 items): plain Spotify search strings that back up the ` +
     `candidates and widen the net.\n` +
@@ -307,7 +316,8 @@ export async function POST(req: Request) {
       "Gemini ranking"
     );
     if (tracks.length === 0) throw new Error("ranker returned no valid picks");
-  } catch {
+  } catch (err) {
+    console.error("[discover] ranking failed, using fallback:", msg(err));
     tracks = pool
       .slice(0, 8)
       .map((t) => ({ ...t, reason: "Surfaced from your taste-based search." }));

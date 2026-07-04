@@ -51,7 +51,7 @@ function stripFences(s: string): string {
 async function callGemini(
   contents: string,
   config: GenerateContentConfig,
-  retries = 2
+  retries = 3
 ): Promise<string> {
   const ai = getClient();
   let lastErr: unknown;
@@ -68,7 +68,7 @@ async function callGemini(
     } catch (err) {
       lastErr = err;
       if (attempt < retries && isTransient(err)) {
-        await sleep(500 * 2 ** attempt); // 500ms, 1s
+        await sleep(1000 * 2 ** attempt); // 1s, 2s
         continue;
       }
       throw err;
