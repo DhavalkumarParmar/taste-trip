@@ -93,10 +93,13 @@ async function planQueries(
     "You are an expert music-discovery curator for Spotify. Your goal is to " +
     "pull listeners OUT of their familiarity trap: surface real, lesser-known " +
     "tracks they likely haven't heard, not blockbusters and not the artists " +
-    "they already know. Crucially, discoveries must stay within the listener's " +
-    "OWN genre(s), language, and emotional world — you surface unfamiliar " +
-    "artists and deeper cuts IN THAT SAME LANE, never a jump to a different " +
-    "genre, unless the request explicitly asks to cross over.";
+    "they already know. Discoveries must stay within the listener's OWN " +
+    "genre(s), language(s), and emotional world — you surface unfamiliar " +
+    "artists and deeper cuts IN THAT SAME LANE. HARD RULE ON LANGUAGE: never " +
+    "recommend a song in a language the listener's seed artists do not " +
+    "already sing in, UNLESS the listener's own prompt explicitly names that " +
+    "other language (e.g. 'give me Bengali songs'). If the prompt is silent " +
+    "on language, stay 100% within the listener's own languages.";
 
   const userPrompt =
     `The listener already knows these artists: ${seedArtists.join(", ")}.\n` +
@@ -104,12 +107,18 @@ async function planQueries(
       prompt ||
       "(no specific request — surprise me with fresh discoveries that expand my taste)"
     }.\n\n` +
-    `First, identify the listener's core genre(s) and language from the seed ` +
-    `artists (e.g. Arijit Singh/Pritam/A.R. Rahman => Hindi FILM / Bollywood ` +
-    `playback; Nusrat/Wadali Brothers => qawwali & Sufi; Anuv Jain/Prateek ` +
-    `Kuhad => Indian indie / acoustic singer-songwriter). Your picks MUST stay ` +
-    `in that same lane and language — surface unfamiliar artists and deeper ` +
-    `cuts within it, not a different genre.\n\n` +
+    `First, identify the listener's core genre(s) AND language(s) from the ` +
+    `seed artists (e.g. Arijit Singh/Pritam/A.R. Rahman => Hindi FILM / ` +
+    `Bollywood playback, language: Hindi; Nusrat/Wadali Brothers => qawwali ` +
+    `& Sufi, languages: Urdu + Punjabi; Anuv Jain + Bon Iver => indie ` +
+    `singer-songwriter, languages: Hindi + English). Your picks MUST stay ` +
+    `in the same genre lane and MUST stay within those language(s). Surface ` +
+    `unfamiliar artists and deeper cuts within that lane, not a different ` +
+    `genre and not a different language.\n\n` +
+    `EXCEPTION FOR LANGUAGE ONLY: if the listener's prompt EXPLICITLY names ` +
+    `another language (e.g. "Bengali songs", "Tamil ballads", "Spanish ` +
+    `guitar", "Korean indie"), then respect that language request. Otherwise ` +
+    `stay 100% within the listener's own languages.\n\n` +
     `Produce two things.\n\n` +
     `"candidates" (PRIMARY — 10-15 items): specific, REAL {title, artist} songs ` +
     `IN THE LISTENER'S GENRE AND LANGUAGE that fit the request, by artists ` +
