@@ -1,18 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────
-// SHARED DATA — no secrets, no process.env. Safe to import from BOTH server
-// code (app/api/discover reads persona.seedArtists) and client code (the
-// persona picker UI). This is the only lib/* file that is not server-only.
-//
+// SHARED DATA — no secrets, no process.env. Safe on server AND client.
 // Three demo personas with genuinely distinct, internally-coherent tastes.
-// Each artist list is chosen so the taste is unambiguous — these seed the
-// discovery engine (and, in a later phase, taste analysis).
 // ─────────────────────────────────────────────────────────────────────────
 
 export interface Persona {
   id: string;
   name: string;
-  emoji: string;
-  /** One-line description of who this listener is. */
+  /** First-person self-description shown as the epigraph on each persona card. */
+  selfQuote: string;
+  /** Short catalog-style description. */
   description: string;
   /** Top artists that sharply define this taste. */
   seedArtists: string[];
@@ -22,7 +18,7 @@ export const PERSONAS: Persona[] = [
   {
     id: "bollywood-romantic",
     name: "The Bollywood Romantic",
-    emoji: "🌹",
+    selfQuote: "I want the song to feel like the whole movie.",
     description: "Sweeping Hindi film love songs and modern Bollywood pop.",
     seedArtists: [
       "Arijit Singh",
@@ -40,7 +36,7 @@ export const PERSONAS: Persona[] = [
   {
     id: "soulful-purist",
     name: "The Soulful Purist",
-    emoji: "🕊️",
+    selfQuote: "Give me the voice, unadorned, and the poem inside it.",
     description:
       "Poetic ghazals, Sufi devotionals, Hindustani classical, and slow, lyrically rich acoustic melodies. Values vocal depth, instrumentation, and poetry over electronic beats.",
     seedArtists: [
@@ -54,9 +50,9 @@ export const PERSONAS: Persona[] = [
   {
     id: "indie-dreamer",
     name: "The Indie Dreamer",
-    emoji: "🌙",
+    selfQuote: "I like the songs that sound like they were sung for one person.",
     description:
-      "Intimate acoustic storytelling, contemporary Indian indie, bedroom pop, and soft English singer-songwriters. Values minimal instrumentation (mostly guitars and ukuleles), emotional vulnerability, and a cozy, late-night road trip or cafe vibe.",
+      "Intimate acoustic storytelling, contemporary Indian indie, bedroom pop, and soft English singer-songwriters. Values minimal instrumentation, emotional vulnerability, and a cozy late-night or cafe vibe.",
     seedArtists: [
       "Anuv Jain",
       "Prateek Kuhad",

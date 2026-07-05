@@ -1,34 +1,37 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Display face: variable, with quirky optical-size personality axes (SOFT).
+// Set variation-settings in CSS where used.
+const fraunces = Fraunces({
   subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+// Body face: variable sans, slightly more character than Inter.
+const instrument = Instrument_Sans({
   subsets: ["latin"],
+  variable: "--font-instrument",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Taste-Trip · AI Music Discovery",
+  title: "Taste-Trip — a discovery map for listeners the algorithm has stopped surprising",
   description:
-    "AI discovery agent surfacing real, playable Spotify tracks you haven't heard.",
+    "A discovery agent that reads your taste, marks the gaps, and finds real Spotify tracks to fill them.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${instrument.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

@@ -26,6 +26,8 @@ export const maxDuration = 60; // Gemini 503s need retry headroom
 // ---- request / response shapes ----
 interface DiscoverRequest {
   prompt?: string;
+  /** Optional refinement text appended to `prompt` server-side (Step 6). */
+  refinement?: string;
   seedArtists?: string[];
 }
 interface PlanResult {
@@ -255,7 +257,12 @@ export async function POST(req: Request) {
   } catch {
     return errorJSON("bad_request", "Request body must be valid JSON.", 400);
   }
-  const prompt = (body.prompt ?? "").toString().trim().slice(0, 500);
+  const rawPrompt = (body.prompt ?? "").toString().trim().slice(0, 500);
+  const refinement = (body.refinement ?? "").toString().trim().slice(0, 300);
+  // Server-side concat: preserves the original ask, adds the refinement.
+  const prompt = refinement
+    ? `${rawPrompt} — refinement: ${refinement}`.slice(0, 800)
+    : rawPrompt;
   const seedArtists = Array.isArray(body.seedArtists)
     ? body.seedArtists
         .filter((a): a is string => typeof a === "string" && a.trim().length > 0)
