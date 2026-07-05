@@ -16,7 +16,8 @@ function getClient(): GoogleGenAI {
 }
 
 function modelName(): string {
-  return process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  // Default chosen for free-tier headroom + quality; override via GEMINI_MODEL.
+  return process.env.GEMINI_MODEL || "gemini-3.1-flash-lite";
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
