@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Instrument_Sans } from "next/font/google";
 import "./globals.css";
+import { SessionProviderWrapper } from "./SessionProviderWrapper";
 
 // Display face: variable, with quirky optical-size personality axes (SOFT).
 // Set variation-settings in CSS where used.
@@ -31,7 +32,9 @@ export default function RootLayout({
       lang="en"
       className={`${fraunces.variable} ${instrument.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <SessionProviderWrapper>{children}</SessionProviderWrapper>
+      </body>
     </html>
   );
 }

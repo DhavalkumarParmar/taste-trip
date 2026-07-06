@@ -27,6 +27,9 @@ export function TasteView({
   onSubmit,
   onBack,
   onRetry,
+  labelPrefix,
+  labelSuffix,
+  onRefreshTaste,
 }: {
   persona: Persona;
   loading: boolean;
@@ -35,6 +38,12 @@ export function TasteView({
   onSubmit: (prompt: string) => void;
   onBack: () => void;
   onRetry: () => void;
+  /** Header eyebrow — e.g. "You picked" (persona) or "Reading" (real user) */
+  labelPrefix?: string;
+  /** Suffix on the name line — e.g. "'s taste" for the real-user path */
+  labelSuffix?: string;
+  /** Only defined on the real-user path — shows the "Refresh my taste" button */
+  onRefreshTaste?: () => void;
 }) {
   const [freeText, setFreeText] = useState("");
 
@@ -44,22 +53,38 @@ export function TasteView({
     if (t) onSubmit(t);
   }
 
+  const prefix = labelPrefix ?? "You picked";
+  const suffix = labelSuffix ?? "";
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-14 sm:py-20">
-      {/* Persona label + back link */}
+      {/* Persona label + back link + optional Refresh button */}
       <div className="flex items-baseline justify-between gap-4 mb-12">
         <div>
-          <p className="eyebrow mb-2">You picked</p>
+          <p className="eyebrow mb-2">{prefix}</p>
           <p
             className="font-display text-xl sm:text-2xl text-ink"
             style={{ fontVariationSettings: '"opsz" 48, "SOFT" 30, "WONK" 0' }}
           >
             {persona.name}
+            {suffix}
           </p>
         </div>
-        <button type="button" onClick={onBack} className="link-back">
-          ← try another
-        </button>
+        <div className="flex items-center gap-4">
+          {onRefreshTaste && (
+            <button
+              type="button"
+              onClick={onRefreshTaste}
+              className="link-back inline-flex items-center gap-1.5"
+              aria-label="Refresh my taste"
+            >
+              <RefreshIcon /> Refresh my taste
+            </button>
+          )}
+          <button type="button" onClick={onBack} className="link-back">
+            ← try another
+          </button>
+        </div>
       </div>
 
       {/* Loading, error, or paragraph */}
@@ -128,6 +153,28 @@ export function TasteView({
         </motion.div>
       ) : null}
     </div>
+  );
+}
+
+function RefreshIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 20 20"
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 10a7 7 0 0 1 12-4.95L17 7" />
+      <path d="M17 3v4h-4" />
+      <path d="M17 10a7 7 0 0 1-12 4.95L3 13" />
+      <path d="M3 17v-4h4" />
+    </svg>
   );
 }
 
