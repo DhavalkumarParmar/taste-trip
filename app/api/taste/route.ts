@@ -79,10 +79,10 @@ export async function POST(req: Request) {
         .filter((a): a is string => typeof a === "string" && a.trim().length > 0)
         .slice(0, 20)
     : [];
-  if (artists.length < 3) {
+  if (artists.length < 1) {
     return errorJSON(
       "bad_request",
-      "seedArtists must include at least 3 real artist names.",
+      "seedArtists must include at least one real artist name.",
       400
     );
   }

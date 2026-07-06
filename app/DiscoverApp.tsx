@@ -28,6 +28,7 @@ export default function DiscoverApp() {
   const [view, setView] = useState<View>("landing");
   const [seed, setSeed] = useState<SeedSource | null>(null);
   const [oauthError, setOauthError] = useState<string>("");
+  const [oauthErrorDetail, setOauthErrorDetail] = useState<string>("");
 
   // Taste state
   const [tasteData, setTasteData] = useState<TasteData | null>(null);
@@ -110,6 +111,7 @@ export default function DiscoverApp() {
 
   async function loadUserSeed() {
     setOauthError("");
+    setOauthErrorDetail("");
     try {
       const res = await fetch("/api/me/top-artists");
       const d = await res.json();
@@ -118,10 +120,15 @@ export default function DiscoverApp() {
           setOauthError("not_allowlisted");
           return;
         }
+        if (d?.error?.code === "no_top_artists") {
+          setOauthError("not_enough_data");
+          setOauthErrorDetail(d.error.message ?? "");
+          return;
+        }
         throw new Error(d?.error?.message ?? "Couldn't read your library.");
       }
       const artists: string[] = Array.isArray(d.artists) ? d.artists : [];
-      if (artists.length < 3) {
+      if (artists.length < 1) {
         setOauthError("not_enough_data");
         return;
       }
@@ -264,7 +271,11 @@ export default function DiscoverApp() {
               {oauthError && (
                 <OauthErrorPanel
                   kind={oauthError}
-                  onDismiss={() => setOauthError("")}
+                  detail={oauthErrorDetail}
+                  onDismiss={() => {
+                    setOauthError("");
+                    setOauthErrorDetail("");
+                  }}
                 />
               )}
             </motion.div>
@@ -320,9 +331,11 @@ export default function DiscoverApp() {
 
 function OauthErrorPanel({
   kind,
+  detail,
   onDismiss,
 }: {
   kind: string;
+  detail?: string;
   onDismiss: () => void;
 }) {
   const notAllowlisted = kind === "not_allowlisted";
@@ -347,13 +360,18 @@ function OauthErrorPanel({
               ? "This Spotify account doesn't have enough top-artist history yet."
               : "Something went wrong finishing your Spotify sign-in."}
         </h3>
-        <p className="text-sm text-ink-2 leading-relaxed mb-6">
+        <p className="text-sm text-ink-2 leading-relaxed mb-4">
           {notAllowlisted
             ? "Try one of the three personas instead — they use the identical discovery engine, just with hardcoded seed artists."
             : notEnough
               ? "Listen to a bit more music on that account, or try a persona in the meantime."
               : "Please try again, or start with a persona to see the discovery engine."}
         </p>
+        {detail && (
+          <p className="text-xs text-muted font-mono leading-relaxed mb-6 border-l-2 border-rule pl-3">
+            {detail}
+          </p>
+        )}
         <button type="button" onClick={onDismiss} className="btn-primary">
           Back to listeners
         </button>

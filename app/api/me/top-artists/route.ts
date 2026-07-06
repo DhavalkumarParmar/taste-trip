@@ -38,45 +38,75 @@ export async function GET(req: Request) {
     );
   }
 
-  // Support ?time_range=short_term|medium_term|long_term (default medium).
-  const url = new URL(req.url);
-  const timeRange = url.searchParams.get("time_range") ?? "medium_term";
-  const validRanges = new Set(["short_term", "medium_term", "long_term"]);
-  const safeRange = validRanges.has(timeRange) ? timeRange : "medium_term";
+  // Spotify's top-artists is per-time-range; some accounts have thin data
+  // in one window but rich data in another. Query all three, merge in a
+  // stable priority order (medium > long > short — medium reflects the
+  // user's current groove best), dedupe, cap at 20.
+  const ranges = ["medium_term", "long_term", "short_term"] as const;
+  const perRange: Record<string, string[]> = {};
+  const statuses: Record<string, number> = {};
+  let sawForbidden = false;
+  let sawUnauthorized = false;
 
-  const spotifyRes = await fetch(
-    `https://api.spotify.com/v1/me/top/artists?limit=20&time_range=${safeRange}`,
-    { headers: { Authorization: `Bearer ${session.accessToken}` } }
+  await Promise.all(
+    ranges.map(async (r) => {
+      const res = await fetch(
+        `https://api.spotify.com/v1/me/top/artists?limit=20&time_range=${r}`,
+        { headers: { Authorization: `Bearer ${session.accessToken}` } }
+      );
+      statuses[r] = res.status;
+      if (res.status === 401) sawUnauthorized = true;
+      if (res.status === 403) sawForbidden = true;
+      if (!res.ok) {
+        perRange[r] = [];
+        return;
+      }
+      const data = (await res.json()) as SpotifyTopArtistsResponse;
+      perRange[r] = (data.items ?? [])
+        .map((a) => a?.name)
+        .filter((n): n is string => typeof n === "string" && n.length > 0);
+    })
   );
 
-  if (spotifyRes.status === 401) {
+  if (sawUnauthorized) {
     return errorJSON(
       "spotify_unauthorized",
       "Spotify rejected the token. Please sign in again.",
       401
     );
   }
-  if (spotifyRes.status === 403) {
-    // Development-mode Spotify apps reject non-allowlisted accounts here.
+  if (sawForbidden) {
     return errorJSON(
       "spotify_forbidden",
       "This Spotify account isn't allowlisted for the demo. Try a persona instead.",
       403
     );
   }
-  if (!spotifyRes.ok) {
-    const detail = await spotifyRes.text().catch(() => "");
-    return errorJSON(
-      "spotify_error",
-      `Spotify returned HTTP ${spotifyRes.status}. ${detail}`.trim(),
-      502
-    );
+
+  const seen = new Set<string>();
+  const artists: string[] = [];
+  for (const r of ranges) {
+    for (const name of perRange[r] ?? []) {
+      const k = name.toLowerCase();
+      if (seen.has(k)) continue;
+      seen.add(k);
+      artists.push(name);
+      if (artists.length >= 20) break;
+    }
+    if (artists.length >= 20) break;
   }
 
-  const data = (await spotifyRes.json()) as SpotifyTopArtistsResponse;
-  const artists = (data.items ?? [])
-    .map((a) => a?.name)
-    .filter((n): n is string => typeof n === "string" && n.length > 0);
+  if (artists.length === 0) {
+    // Return structured info so the client can render a specific message
+    // AND we can eyeball which time_ranges came back empty during testing.
+    return errorJSON(
+      "no_top_artists",
+      `Spotify returned no top artists across any time range. ` +
+        `Statuses: medium=${statuses.medium_term}, long=${statuses.long_term}, ` +
+        `short=${statuses.short_term}.`,
+      404
+    );
+  }
 
   return NextResponse.json({
     ok: true,
@@ -85,5 +115,15 @@ export async function GET(req: Request) {
       image: session.user?.image ?? null,
     },
     artists,
+    // Debug info (safe to expose — no secrets): tells the caller how many
+    // artists each time_range yielded. Useful during MVP dogfooding.
+    _diagnostics: {
+      counts: {
+        medium_term: perRange.medium_term?.length ?? 0,
+        long_term: perRange.long_term?.length ?? 0,
+        short_term: perRange.short_term?.length ?? 0,
+      },
+      statuses,
+    },
   });
 }
